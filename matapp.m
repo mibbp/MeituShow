@@ -3,6 +3,15 @@ classdef MTXXmlapp < matlab.apps.AppBase
     % Properties that correspond to app components
     properties (Access = public)
         UIFigure       matlab.ui.Figure
+        Button_16      matlab.ui.control.StateButton
+        Slider_33      matlab.ui.control.Slider
+        Label_26       matlab.ui.control.Label
+        Slider_32      matlab.ui.control.Slider
+        Label_25       matlab.ui.control.Label
+        SRCNNButton    matlab.ui.control.StateButton
+        Button_15      matlab.ui.control.StateButton
+        DropDown_2     matlab.ui.control.DropDown
+        Label_24       matlab.ui.control.Label
         Slider_31      matlab.ui.control.Slider
         Label_23       matlab.ui.control.Label
         Slider_30      matlab.ui.control.Slider
@@ -37,7 +46,6 @@ classdef MTXXmlapp < matlab.apps.AppBase
         Slider_4       matlab.ui.control.Slider
         Label_4        matlab.ui.control.Label
         Button_9       matlab.ui.control.StateButton
-        Button_8       matlab.ui.control.Button
         Slider_3       matlab.ui.control.Slider
         Label_3        matlab.ui.control.Label
         Contrast       matlab.ui.control.Slider
@@ -101,8 +109,10 @@ classdef MTXXmlapp < matlab.apps.AppBase
 
             I = imread(app.file);
             
-            I = app.SkinWhitening(I);
-
+            if app.Button_16.Value == true
+                I = app.SkinWhitening(I);
+            end
+            
             light = double(light);
             I = I+light;
 
@@ -111,6 +121,14 @@ classdef MTXXmlapp < matlab.apps.AppBase
                 app.LipStick();
                 I = imread('C:/Users/mibbp/Pictures/Lipstickoutput.jpg');
             end
+            
+            if(app.Button_15.Value == true)
+                imwrite(I , 'D:/Users/mibbp/PycharmProjects/pythonProject1/BeautyGAN/imgs/no_makeup/test.jpg');
+                app.Makeup();
+                I = imread('D:/Users/mibbp/PycharmProjects/pythonProject1/BeautyGAN/result.jpg');
+            end
+            
+            
             
 
             if(app.Button_9.Value==false)
@@ -133,13 +151,15 @@ classdef MTXXmlapp < matlab.apps.AppBase
                 I = imread('C:/Users/mibbp/Pictures/bigEye.jpg');
             end
 
-
+            if(app.SRCNNButton.Value == true)
+                I = app.SRCNN(I);
+            end
             
             img_duibidu = im2uint16(I);
-            img_contrast = immultiply(img_duibidu,contrast);
+            I = immultiply(img_duibidu,contrast);
 
            
-            imshow(img_contrast,'Parent',app.UIAxes2);
+            imshow(I,'Parent',app.UIAxes2);
             msgbox('完成');
         end
         
@@ -325,6 +345,21 @@ classdef MTXXmlapp < matlab.apps.AppBase
             S = round(app.Slider_31.Value);
             py.Lipstick.main(H, S);
         end
+        
+        function results = Makeup(app)
+            value = app.DropDown_2.Value;
+            value = round(value);
+            value = value - 48;
+%             writetable(value,"D:/MakeupOperation");
+            writematrix(value,"D:/MakeupOperation",'Delimiter',';');
+            pyrunfile("D:/Users/mibbp/PycharmProjects/pythonProject1/BeautyGAN/MakeUp.py");
+        end
+        
+        function results = SRCNN(app,img)
+            value = app.Slider_32.Value;
+            value = round(value);
+            results = SRCNN_RGB(img,value);
+        end
     end
     
 
@@ -458,7 +493,7 @@ classdef MTXXmlapp < matlab.apps.AppBase
 
         end
 
-        % Button pushed function: Button_8
+        % Callback function
         function Button_8Pushed(app, event)
 %             app.file = app.tmp_file;
             I = app.Image;
@@ -598,6 +633,18 @@ classdef MTXXmlapp < matlab.apps.AppBase
             value = app.Slider_21.Value;
             app.run();
         end
+
+        % Value changed function: DropDown_2
+        function DropDown_2ValueChanged(app, event)
+            value = app.DropDown_2.Value;
+            app.run();
+        end
+
+        % Value changed function: Slider_32
+        function Slider_32ValueChanged(app, event)
+            value = app.Slider_32.Value;
+            app.run();
+        end
     end
 
     % Component initialization
@@ -718,12 +765,6 @@ classdef MTXXmlapp < matlab.apps.AppBase
             app.Slider_3.MajorTickLabels = {'0', '1', '2', '3', '4', '5'};
             app.Slider_3.ValueChangedFcn = createCallbackFcn(app, @Slider_3ValueChanged, true);
             app.Slider_3.Position = [1438 870 150 3];
-
-            % Create Button_8
-            app.Button_8 = uibutton(app.UIFigure, 'push');
-            app.Button_8.ButtonPushedFcn = createCallbackFcn(app, @Button_8Pushed, true);
-            app.Button_8.Position = [1446 51 100 25];
-            app.Button_8.Text = '美颜';
 
             % Create Button_9
             app.Button_9 = uibutton(app.UIFigure, 'state');
@@ -884,12 +925,12 @@ classdef MTXXmlapp < matlab.apps.AppBase
             % Create Button_12
             app.Button_12 = uibutton(app.UIFigure, 'state');
             app.Button_12.Text = '大眼开关';
-            app.Button_12.Position = [866 218 100 22];
+            app.Button_12.Position = [791 218 100 22];
 
             % Create Label_19
             app.Label_19 = uilabel(app.UIFigure);
             app.Label_19.HorizontalAlignment = 'right';
-            app.Label_19.Position = [643 165 77 22];
+            app.Label_19.Position = [670 165 77 22];
             app.Label_19.Text = '左眼放大强度';
 
             % Create Slider_25
@@ -897,13 +938,13 @@ classdef MTXXmlapp < matlab.apps.AppBase
             app.Slider_25.MajorTicks = [0 10 20 30 40 50 60 70 80 90 100];
             app.Slider_25.MajorTickLabels = {'低', '', '', '', '', '中', '', '', '', '', '强'};
             app.Slider_25.ValueChangedFcn = createCallbackFcn(app, @Slider_25ValueChanged, true);
-            app.Slider_25.Position = [741 174 150 3];
+            app.Slider_25.Position = [768 174 150 3];
             app.Slider_25.Value = 30;
 
             % Create Label_20
             app.Label_20 = uilabel(app.UIFigure);
             app.Label_20.HorizontalAlignment = 'right';
-            app.Label_20.Position = [927 165 77 22];
+            app.Label_20.Position = [671 74 77 22];
             app.Label_20.Text = '右眼放大强度';
 
             % Create Slider_28
@@ -911,13 +952,13 @@ classdef MTXXmlapp < matlab.apps.AppBase
             app.Slider_28.MajorTicks = [0 10 20 30 40 50 60 70 80 90 100];
             app.Slider_28.MajorTickLabels = {'低', '', '', '', '', '中', '', '', '', '', '强'};
             app.Slider_28.ValueChangedFcn = createCallbackFcn(app, @Slider_28ValueChanged, true);
-            app.Slider_28.Position = [1025 174 150 3];
+            app.Slider_28.Position = [769 83 150 3];
             app.Slider_28.Value = 30;
 
             % Create Label_21
             app.Label_21 = uilabel(app.UIFigure);
             app.Label_21.HorizontalAlignment = 'right';
-            app.Label_21.Position = [1387 798 29 22];
+            app.Label_21.Position = [1388 769 29 22];
             app.Label_21.Text = '美白';
 
             % Create Slider_29
@@ -926,7 +967,7 @@ classdef MTXXmlapp < matlab.apps.AppBase
             app.Slider_29.MajorTicks = [1 2 3 4 5 6 7 8 9 10];
             app.Slider_29.MajorTickLabels = {'低', '', '', '', '中', '', '', '', '', '强'};
             app.Slider_29.ValueChangedFcn = createCallbackFcn(app, @Slider_29ValueChanged, true);
-            app.Slider_29.Position = [1437 807 150 3];
+            app.Slider_29.Position = [1438 778 150 3];
             app.Slider_29.Value = 5;
 
             % Create Button_13
@@ -963,6 +1004,63 @@ classdef MTXXmlapp < matlab.apps.AppBase
             app.Slider_31.ValueChangedFcn = createCallbackFcn(app, @Slider_31ValueChanged, true);
             app.Slider_31.Position = [1439 619 150 3];
             app.Slider_31.Value = 200;
+
+            % Create Label_24
+            app.Label_24 = uilabel(app.UIFigure);
+            app.Label_24.HorizontalAlignment = 'right';
+            app.Label_24.Position = [1365 190 53 22];
+            app.Label_24.Text = '彩妆选择';
+
+            % Create DropDown_2
+            app.DropDown_2 = uidropdown(app.UIFigure);
+            app.DropDown_2.Items = {'0', '1', '2', '3', '4', '5'};
+            app.DropDown_2.ValueChangedFcn = createCallbackFcn(app, @DropDown_2ValueChanged, true);
+            app.DropDown_2.FontSize = 20;
+            app.DropDown_2.Position = [1458 186 137 26];
+            app.DropDown_2.Value = '0';
+
+            % Create Button_15
+            app.Button_15 = uibutton(app.UIFigure, 'state');
+            app.Button_15.Text = '彩妆开关';
+            app.Button_15.Position = [1463 230 99 22];
+
+            % Create SRCNNButton
+            app.SRCNNButton = uibutton(app.UIFigure, 'state');
+            app.SRCNNButton.Text = 'SRCNN超像素';
+            app.SRCNNButton.Position = [1109 218 100 22];
+
+            % Create Label_25
+            app.Label_25 = uilabel(app.UIFigure);
+            app.Label_25.HorizontalAlignment = 'right';
+            app.Label_25.Position = [1008 165 53 22];
+            app.Label_25.Text = '插值次数';
+
+            % Create Slider_32
+            app.Slider_32 = uislider(app.UIFigure);
+            app.Slider_32.Limits = [2 4];
+            app.Slider_32.MajorTicks = [2 3 4];
+            app.Slider_32.MajorTickLabels = {'2', '3', '4'};
+            app.Slider_32.ValueChangedFcn = createCallbackFcn(app, @Slider_32ValueChanged, true);
+            app.Slider_32.Position = [1082 174 150 3];
+            app.Slider_32.Value = 3;
+
+            % Create Label_26
+            app.Label_26 = uilabel(app.UIFigure);
+            app.Label_26.HorizontalAlignment = 'right';
+            app.Label_26.Position = [1009 74 53 22];
+            app.Label_26.Text = '为了对称';
+
+            % Create Slider_33
+            app.Slider_33 = uislider(app.UIFigure);
+            app.Slider_33.MajorTicks = [0 10 20 30 40 50 60 70 80 90 100];
+            app.Slider_33.MajorTickLabels = {'低', '', '', '', '', '中', '', '', '', '', '强'};
+            app.Slider_33.Position = [1083 83 150 3];
+            app.Slider_33.Value = 30;
+
+            % Create Button_16
+            app.Button_16 = uibutton(app.UIFigure, 'state');
+            app.Button_16.Text = '美白开关';
+            app.Button_16.Position = [1464 806 99 22];
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';
